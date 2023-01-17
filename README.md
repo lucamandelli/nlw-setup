@@ -1,2 +1,2 @@
 # nlw-setup
-Building a FullStack Application
+Building a FullStack Habbits Tracker Application
