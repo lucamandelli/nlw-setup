@@ -75,7 +75,7 @@ export async function appRoutes(app: FastifyInstance) {
 
   app.patch('/habits/:id/toggle', async (request) => {
     const toggleHabitParams = z.object({
-      id: z.string().uuid(),
+      id: z.string().uuid()
     })
 
     const { id } = toggleHabitParams.parse(request.params)
@@ -84,14 +84,14 @@ export async function appRoutes(app: FastifyInstance) {
 
     let day = await prisma.day.findUnique({
       where: {
-        date: today,
+        date: today
       }
     })
 
-    if (!day) {
+    if(!day) {
       day = await prisma.day.create({
         data: {
-          date: today,
+          date: today
         }
       })
     }
@@ -100,22 +100,22 @@ export async function appRoutes(app: FastifyInstance) {
       where: {
         day_id_habit_id: {
           day_id: day.id,
-          habit_id: id,
+          habit_id: id
         }
       }
     })
 
-    if (dayHabit) {
+    if(dayHabit) {
       await prisma.dayHabit.delete({
         where: {
-          id: dayHabit.id,
+          id: dayHabit.id
         }
       })
     } else {
       await prisma.dayHabit.create({
         data: {
           day_id: day.id,
-          habit_id: id,
+          habit_id: id
         }
       })
     }
@@ -124,26 +124,28 @@ export async function appRoutes(app: FastifyInstance) {
   app.get('/summary', async () => {
     const summary = await prisma.$queryRaw`
       SELECT 
-        D.id,
+        D.id, 
         D.date,
         (
           SELECT 
             cast(count(*) as float)
-          FROM days_habits DH
+          FROM day_habits DH
           WHERE DH.day_id = D.id
         ) as completed,
         (
           SELECT
             cast(count(*) as float)
-          FROM habit_week_days HWD
+          FROM habit_week_days HDW
           JOIN habits H
-            ON H.id = HWD.habit_id
+            ON H.id = HDW.habit_id
           WHERE
-            HWD.week_day = cast(strftime('%w', D.date/1000.0, 'unixepoch') as int)
+            HDW.week_day = cast(strftime('%w', D.date/1000.0, 'unixepoch') as int)
             AND H.created_at <= D.date
         ) as amount
       FROM days D
     `
+
     return summary
   })
 }
+
