@@ -1,20 +1,39 @@
 import { useState } from 'react';
-import { ScrollView, View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { ScrollView, View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { BackButton } from '../components/BackButton';
 import { CheckBox } from '../components/CheckBox';
 import { Feather } from "@expo/vector-icons";
 import colors from 'tailwindcss/colors';
+import { api } from '../lib/axios';
 
 
 const availableWeekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
 export function New() {
+  const [title, setTitle] = useState('')
   const [weekDays, setWeekDays] =useState<number[]>([]);
   function handleToggleWeekDay(weekDayIndex: number) {
     if (weekDays.includes(weekDayIndex)) {
       setWeekDays(prevState => prevState.filter(weekDay => weekDay !== weekDayIndex));
     } else {
       setWeekDays(prevState => [...prevState, weekDayIndex]);
+    }
+  }
+
+  async function handleCreateNewHabit() {
+    try {
+      if (!title.trim() || weekDays.length === 0) {
+        Alert.alert('New habit', "Inform habit's title and set the days.")
+      }
+      await api.post('/habits', { title, weekDays });
+
+      setTitle('');
+      setWeekDays([]);
+
+      Alert.alert('New habit', "Successfully created a new habit")
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Oh', "It wasn't possible to create a new habit.");
     }
   }
   return (
@@ -34,6 +53,8 @@ export function New() {
           className='h-12 pl-4 rounded-lg mt-3 bg-zinc-900 text-white border-2 border-zinc-800 focus:border-green-500'
           placeholder='e.g.: Better sleep, exercise, new diet, etc...'
           placeholderTextColor={colors.zinc[400]}
+          onChangeText={setTitle}
+          value={title}
         />
         <Text className='font-semibold mt-4 mb-3 text-white text-base'>
           How often?
@@ -52,6 +73,7 @@ export function New() {
         <TouchableOpacity 
           activeOpacity={0.7}
           className='w-full h-14 flex-row items-center justify-center bg-green-600 rounded-md mt-6'
+          onPress={handleCreateNewHabit}
         >
           <Feather 
             name='check'
